@@ -4,6 +4,10 @@ const exhibitText = document.getElementById("exhibit");
 
 let currentAudio = null;
 let lastPlayed = "";
+const supportsWebBluetooth =
+  typeof navigator !== "undefined" &&
+  "bluetooth" in navigator &&
+  typeof navigator.bluetooth.requestDevice === "function";
 
 const exhibits = {
 
@@ -24,7 +28,25 @@ const exhibits = {
 
 };
 
+if(!supportsWebBluetooth) {
+
+  startBtn.disabled = true;
+
+  statusText.innerText =
+    "This browser does not support Web Bluetooth. Open this site in a supported browser.";
+
+}
+
 startBtn.addEventListener("click", async () => {
+
+  if(!supportsWebBluetooth) {
+
+    statusText.innerText =
+      "Safari does not support this Bluetooth feature here. Try Chrome or Edge on a supported device.";
+
+    return;
+
+  }
 
   try {
 
@@ -82,8 +104,22 @@ startBtn.addEventListener("click", async () => {
 
     console.log(error);
 
-    statusText.innerText =
-      "Bluetooth permission denied or scan cancelled.";
+    if(error?.name === "NotFoundError") {
+
+      statusText.innerText =
+        "No Bluetooth device was selected.";
+
+    } else if(error?.name === "NotAllowedError") {
+
+      statusText.innerText =
+        "Bluetooth permission was denied.";
+
+    } else {
+
+      statusText.innerText =
+        "Bluetooth is unavailable in this browser or the scan failed.";
+
+    }
 
   }
 
